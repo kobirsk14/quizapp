@@ -1,0 +1,1213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Classy AI Quiz App</title>
+    <!-- Tailwind CSS CDN for classy styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* Base styles for the dark theme */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #1a202c; /* Deep charcoal background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow-x: hidden; /* Prevent horizontal scroll from animations */
+            color: #e2e8f0; /* Light text for dark theme */
+        }
+        #app-container {
+            background-color: #2d3748; /* Darker grey surface color for the app card */
+            border-radius: 1.5rem; /* Rounded corners */
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4); /* More prominent shadow for dark theme contrast */
+            padding: 2.5rem; /* Increased padding */
+            max-width: 90%;
+            width: 500px; /* Fixed width for larger screens */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: all 0.4s ease-in-out;
+            position: relative; /* For screen transitions */
+        }
+
+        /* Screen Transitions */
+        .screen {
+            display: none;
+            width: 100%;
+            opacity: 0;
+            transform: translateX(20px);
+            transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+            position: absolute; /* Allow screens to overlap during transition */
+            top: 2.5rem; /* Align with app-container padding */
+            left: 2.5rem; /* Align with app-container padding */
+            right: 2.5rem; /* Align with app-container padding */
+            bottom: 2.5rem; /* Align with app-container padding */
+        }
+        .screen.active {
+            display: block;
+            opacity: 1;
+            transform: translateX(0);
+            position: relative; /* Active screen takes up space and ensures correct flow */
+        }
+
+        /* Inputs and Selects Styling (Dark Theme) */
+        input[type="text"],
+        input[type="number"],
+        select {
+            background-color: #3b4556; /* Slightly lighter dark background for inputs */
+            color: #e2e8f0; /* Light text color for input values */
+            border-color: #5b6578; /* Darker border */
+            transition: all 0.3s ease-in-out;
+            /* Added Tailwind for rounded corners, padding, etc. in HTML directly */
+        }
+        input[type="text"]::placeholder { /* Placeholder color */
+            color: #a0aec0; /* Lighter gray for placeholders */
+        }
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        select:focus {
+            box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.3); /* Purple focus ring with more transparency */
+            border-color: #8b5cf6; /* Stronger purple border on focus */
+        }
+
+        /* Button Styling (Primary - Purple) */
+        .btn-primary {
+            background-color: #9a67ea; /* Purple-500 base */
+            background-image: linear-gradient(to right, #9a67ea 0%, #b288f9 100%); /* Subtle gradient */
+            color: white;
+            padding: 0.85rem 1.75rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            transition: all 0.3s ease-in-out;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(154, 103, 234, 0.4); /* Button shadow */
+        }
+        .btn-primary:hover {
+            background-image: linear-gradient(to right, #8a57d9 0%, #9b72f5 100%); /* Darker gradient on hover */
+            transform: translateY(-2px) scale(1.02); /* Subtle lift and scale */
+            box-shadow: 0 6px 20px rgba(154, 103, 234, 0.5); /* Stronger shadow on hover */
+        }
+        .btn-primary:active {
+            transform: translateY(0) scale(0.98); /* Press down effect */
+            box-shadow: 0 2px 10px rgba(154, 103, 234, 0.3);
+        }
+        .btn-primary:disabled {
+            opacity: 0.6 !important;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+            background-image: none;
+            background-color: #b393d6; /* Lighter purple when disabled */
+        }
+
+        /* Button Styling (Outline - Teal) */
+        .btn-outline {
+            border: 2px solid #6edcbf; /* Lighter teal border */
+            color: #6edcbf; /* Lighter teal text */
+            padding: 0.85rem 1.75rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            transition: all 0.3s ease-in-out;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(110, 220, 191, 0.15); /* Subtle shadow */
+        }
+        .btn-outline:hover {
+            background-color: #2ed2b1; /* Solid dark teal background on hover */
+            color: #1a202c; /* Dark text on hover */
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 4px 15px rgba(110, 220, 191, 0.25);
+        }
+        .btn-outline:active {
+            transform: translateY(0) scale(0.98);
+            box-shadow: 0 1px 5px rgba(110, 220, 191, 0.1);
+        }
+
+        /* Option Card Animations (Dark Theme) */
+        .option-card {
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            background-color: #3b4556; /* Dark card background */
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* Subtle initial shadow */
+            border: 2px solid #5b6578; /* Darker default border */
+            color: #e2e8f0; /* Light text for options */
+        }
+        .option-card:hover {
+            transform: translateY(-3px); /* More noticeable lift */
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2); /* Stronger shadow on hover */
+            border-color: #b288f9; /* Lighter purple border on hover */
+        }
+        .option-card.selected {
+            border-color: #8b5cf6 !important; /* Purple-500 */
+            background-color: #7b40d4 !important; /* More saturated purple for selected */
+            color: white !important;
+            transform: scale(1.02); /* Slight pop on selection */
+            box-shadow: 0 5px 12px rgba(139, 92, 246, 0.35); /* Stronger shadow for selected */
+        }
+
+        /* Answer Breakdown Details and Explanations (Dark Theme) */
+        .correct-answer-text {
+            color: #68d391; /* Light green for dark theme */
+        }
+        .incorrect-answer-text {
+            color: #fc8181; /* Light red for dark theme */
+        }
+        .explanation-section {
+            overflow: hidden; /* For slide-down effect */
+            transition: max-height 0.5s ease-out, opacity 0.5s ease-out;
+            max-height: 0;
+            opacity: 0;
+            background-color: #3b4556; /* Consistent dark background with cards/inputs */
+            border-color: #5b6578; /* Consistent dark border */
+            color: #e2e8f0; /* Light text */
+        }
+        .explanation-section.open {
+            max-height: 300px; /* Adjust as needed for content length */
+            opacity: 1;
+            padding-top: 0.75rem; /* Space from button */
+            padding-bottom: 0.75rem;
+        }
+
+        /* Utility classes for subtle fade-in on input elements */
+        .fade-in {
+            animation: fadeIn 0.8s ease-out forwards;
+            opacity: 0;
+        }
+        .fade-in-1 { animation-delay: 0.1s; }
+        .fade-in-2 { animation-delay: 0.2s; }
+        .fade-in-3 { animation-delay: 0.3s; }
+        .fade-in-4 { animation-delay: 0.4s; }
+        .fade-in-5 { animation-delay: 0.5s; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Responsive Adjustments for Mobile */
+        @media (max-width: 640px) {
+            #app-container {
+                padding: 1rem; /* Smaller padding on small screens */
+                width: 98%; /* Take more width */
+                max-width: none; /* No max width constraint on mobile */
+                border-radius: 1rem;
+                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3); /* Slightly less intense shadow */
+            }
+            h1 {
+                font-size: 1.75rem; /* Adjust heading size */
+            }
+            h2 {
+                font-size: 1.5rem; /* Adjust heading size */
+            }
+            .btn-primary, .btn-outline {
+                padding: 0.5rem 1rem;
+                font-size: 0.85rem;
+                flex: 1; /* Ensure buttons take equal space */
+            }
+            .screen {
+                top: 1rem;
+                left: 1rem;
+                right: 1rem;
+                bottom: 1rem;
+            }
+            /* Adjust flex direction for buttons on smaller screens */
+            .flex.justify-between.w-full {
+                flex-direction: column;
+                gap: 0.75rem; /* Space between buttons */
+            }
+            /* Ensure buttons take full width when stacked */
+            .flex-1, .flex-2 {
+                width: 100%;
+                margin: 0 !important; /* Override specific margins for stacking */
+            }
+            /* Specific adjustment for quiz screen buttons */
+            #quiz-screen .flex.justify-between.w-full {
+                flex-direction: row; /* Keep row for 3 buttons if space, otherwise stack */
+                flex-wrap: wrap; /* Allow wrapping */
+                gap: 0.5rem; /* Smaller gap for 3 buttons */
+            }
+            #quiz-screen .btn-outline, #quiz-screen .btn-primary {
+                flex: 1 1 auto; /* Allow items to grow/shrink based on content, auto width */
+                min-width: 100px; /* Minimum width to prevent squishing */
+            }
+            /* Special case for 3 buttons on very small screens */
+            @media (max-width: 480px) {
+                 #quiz-screen .flex.justify-between.w-full {
+                    flex-direction: column; /* Stack all 3 buttons on very small screens */
+                    gap: 0.75rem;
+                }
+            }
+
+
+            .option-card {
+                padding: 0.8rem;
+                font-size: 0.95rem; /* Slightly smaller font for options */
+            }
+            /* Adjust text sizes for responsiveness */
+            .text-xl { font-size: 1.15rem; }
+            .text-lg { font-size: 1rem; }
+            .text-sm { font-size: 0.875rem; }
+            .text-xs { font-size: 0.75rem; }
+
+            #answer-breakdown {
+                max-height: 150px; /* Adjust height for mobile scrollable area */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="app-container" class="space-y-6">
+        <!-- Input Screen -->
+        <div id="input-screen" class="screen active text-center">
+            <h1 class="text-3xl font-bold text-gray-100 mb-6 fade-in fade-in-1">Configure Your Quiz</h1>
+
+            <div class="mb-4 fade-in fade-in-2">
+                <label for="quiz-topic" class="block text-gray-300 text-sm font-semibold mb-2 text-left">Quiz Topic:</label>
+                <input type="text" id="quiz-topic" placeholder="e.g., History, Science, JavaScript"
+                       class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 transition duration-200">
+            </div>
+
+            <div class="mb-4 fade-in fade-in-3">
+                <label for="num-questions" class="block text-gray-300 text-sm font-semibold mb-2 text-left">Number of Questions:</label>
+                <input type="number" id="num-questions" value="5" min="1" max="10"
+                       class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 transition duration-200">
+            </div>
+
+            <div class="mb-6 fade-in fade-in-4">
+                <label for="difficulty-level" class="block text-gray-300 text-sm font-semibold mb-2 text-left">Difficulty Level:</label>
+                <select id="difficulty-level"
+                        class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 transition duration-200">
+                    <option value="Easy">Easy</option>
+                    <option value="Medium" selected>Medium</option>
+                    <option value="Hard">Hard</option>
+                </select>
+            </div>
+
+            <button id="start-quiz-btn" class="w-full btn-primary flex items-center justify-center space-x-2 fade-in fade-in-5">
+                <i class="fas fa-play"></i>
+                <span>Start Quiz</span>
+            </button>
+
+            <div id="loading-spinner" class="mt-4 hidden">
+                <i class="fas fa-spinner fa-spin text-purple-400 text-3xl"></i>
+                <p class="text-gray-300 mt-2">Generating quiz questions...</p>
+            </div>
+
+            <p id="error-message" class="text-red-400 text-sm mt-4"></p>
+        </div>
+
+        <!-- Quiz Screen -->
+        <div id="quiz-screen" class="screen text-center">
+            <div class="flex justify-between items-center w-full mb-4">
+                <p id="timer" class="text-lg font-semibold text-gray-200"><i class="fas fa-clock mr-2"></i>00:00</p>
+                <p id="question-counter" class="text-lg font-semibold text-gray-200">Question 1/5</p>
+            </div>
+            <div id="quiz-progress-bar" class="w-full mb-6">
+                <div id="quiz-progress-fill"></div>
+            </div>
+
+            <div class="bg-gray-700 p-6 rounded-xl shadow-lg mb-8">
+                <p id="question-text" class="text-xl font-bold text-gray-100 mb-6"></p>
+                <div id="options-container" class="space-y-4">
+                    <!-- Options will be dynamically loaded here -->
+                </div>
+            </div>
+
+            <div class="flex justify-between w-full flex-wrap gap-2"> <!-- Added flex-wrap and gap -->
+                <button id="previous-btn" class="btn-outline flex-1 flex items-center justify-center space-x-2" disabled>
+                    <i class="fas fa-arrow-left"></i>
+                    <span>Previous</span>
+                </button>
+                <button id="skip-btn" class="btn-outline flex-1 flex items-center justify-center space-x-2">
+                    <i class="fas fa-forward"></i>
+                    <span>Skip</span>
+                </button>
+                <button id="next-btn" class="btn-primary flex-1 flex items-center justify-center space-x-2" disabled> <!-- Changed flex-2 to flex-1 for balance -->
+                    <i class="fas fa-arrow-right"></i>
+                    <span>Next</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Result Screen -->
+        <div id="result-screen" class="screen text-center">
+            <h2 class="text-3xl font-bold text-gray-100 mb-6">Quiz Results</h2>
+
+            <div class="bg-gray-700 p-6 rounded-xl shadow-lg mb-8 space-y-4">
+                <p class="text-2xl font-semibold text-gray-200">Score: <span id="final-score" class="text-purple-400 font-bold"></span></p>
+                <p class="text-xl text-gray-300">Accuracy: <span id="accuracy-percentage" class="text-teal-400 font-bold"></span></p>
+                <p class="text-xl text-gray-300">Time Taken: <span id="time-taken" class="font-bold"></span></p>
+
+                <div class="flex flex-col items-center justify-center mt-6">
+                    <canvas id="result-pie-chart" width="200" height="200"></canvas>
+                    <div class="flex space-x-8 mt-4">
+                        <div class="flex items-center">
+                            <span class="inline-block w-4 h-4 bg-green-500 rounded-sm mr-2"></span>
+                            <span class="text-gray-300">Correct</span>
+                        </div>
+                        <div class="flex items-center">
+                            <span class="inline-block w-4 h-4 bg-red-500 rounded-sm mr-2"></span>
+                            <span class="text-gray-300">Incorrect</span>
+                        </div>
+                    </div>
+                </div>
+
+                <h3 class="text-xl font-semibold text-gray-100 mt-8 mb-4 text-left">Answer Breakdown:</h3>
+                <div id="answer-breakdown" class="text-left max-h-60 overflow-y-auto pr-2">
+                    <!-- Breakdown will be dynamically loaded here -->
+                </div>
+
+                <div class="flex flex-col items-center mt-6 space-y-4">
+                    <button id="get-summary-btn" class="w-full btn-primary flex items-center justify-center space-x-2">
+                        <i class="fas fa-clipboard-list mr-1"></i>
+                        <span>Get Quiz Summary ✨</span>
+                    </button>
+                    <div id="summary-loading-spinner" class="mt-4 hidden">
+                        <i class="fas fa-spinner fa-spin text-purple-400 text-2xl"></i>
+                        <p class="text-gray-300 mt-1">Generating summary...</p>
+                    </div>
+                    <div id="quiz-summary-display" class="mt-3 p-4 border rounded-lg text-sm hidden text-left explanation-section">
+                        <!-- Quiz summary will be displayed here -->
+                    </div>
+                    <p id="summary-error-message" class="text-red-400 text-sm mt-2 hidden"></p>
+                </div>
+            </div>
+
+            <button id="restart-quiz-btn" class="w-full btn-primary flex items-center justify-center space-x-2">
+                <i class="fas fa-redo"></i>
+                <span>Start New Quiz</span>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- App State ---
+        let appState = {
+            currentScreen: 'input', // 'input', 'quiz', 'result'
+            quizTopic: '',
+            numberOfQuestions: 5,
+            difficultyLevel: 'Medium',
+            quizQuestions: [],
+            currentQuestionIndex: 0,
+            selectedOptionIndex: null,
+            answeredQuestions: [], // { questionIndex, selectedOptionIndex, isCorrect, userAnswer, correctAnswer, explanation: null, explanationLoading: false }
+            timeRemaining: 0, // in seconds
+            quizInterval: null,
+            quizStartTime: 0,
+            isLoading: false, // For initial quiz generation
+            errorMessage: null, // For initial quiz generation error
+
+            // New state for summary
+            quizSummary: null,
+            quizSummaryLoading: false,
+            quizSummaryError: null
+        };
+
+        // --- DOM Element References ---
+        const appContainer = document.getElementById('app-container');
+        const inputScreen = document.getElementById('input-screen');
+        const quizScreen = document.getElementById('quiz-screen');
+        const resultScreen = document.getElementById('result-screen');
+
+        // Input Screen elements
+        const quizTopicInput = document.getElementById('quiz-topic');
+        const numQuestionsInput = document.getElementById('num-questions');
+        const difficultyLevelSelect = document.getElementById('difficulty-level');
+        const startQuizBtn = document.getElementById('start-quiz-btn');
+        const loadingSpinner = document.getElementById('loading-spinner');
+        const errorMessageDisplay = document.getElementById('error-message');
+
+        // Quiz Screen elements
+        const timerDisplay = document.getElementById('timer');
+        const questionCounterDisplay = document.getElementById('question-counter');
+        const quizProgressBarFill = document.getElementById('quiz-progress-fill');
+        const questionTextDisplay = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options-container');
+        const previousBtn = document.getElementById('previous-btn'); // New reference
+        const skipBtn = document.getElementById('skip-btn');
+        const nextBtn = document.getElementById('next-btn');
+
+        // Result Screen elements
+        const finalScoreDisplay = document.getElementById('final-score');
+        const accuracyPercentageDisplay = document.getElementById('accuracy-percentage');
+        const timeTakenDisplay = document.getElementById('time-taken');
+        const resultPieChartCanvas = document.getElementById('result-pie-chart');
+        const answerBreakdownDisplay = document.getElementById('answer-breakdown');
+        const restartQuizBtn = document.getElementById('restart-quiz-btn');
+        const getSummaryBtn = document.getElementById('get-summary-btn');
+        const summaryLoadingSpinner = document.getElementById('summary-loading-spinner');
+        const quizSummaryDisplay = document.getElementById('quiz-summary-display');
+        const summaryErrorMessageDisplay = document.getElementById('summary-error-message');
+
+        // --- Utility Functions ---
+
+        /**
+         * Renders the active screen based on appState.currentScreen.
+         * Hides all screens then shows the active one with a transition.
+         * @param {string} newScreenId The ID of the screen to activate.
+         */
+        function switchScreen(newScreenId) {
+            const currentActiveScreen = document.querySelector('.screen.active');
+            const newActiveScreen = document.getElementById(newScreenId);
+
+            if (currentActiveScreen) {
+                currentActiveScreen.classList.remove('active');
+                currentActiveScreen.style.transform = 'translateX(-20px)'; // Slide out to left
+                currentActiveScreen.style.opacity = '0';
+            }
+
+            // Small delay to allow old screen to animate out before new one animates in
+            setTimeout(() => {
+                appState.currentScreen = newScreenId;
+                if (newActiveScreen) {
+                    // Reset transform/opacity for incoming animation
+                    newActiveScreen.style.transform = 'translateX(20px)'; // Slide in from right
+                    newActiveScreen.style.opacity = '0';
+                    newActiveScreen.classList.add('active');
+                    // Force reflow to ensure transition
+                    void newActiveScreen.offsetWidth;
+                    newActiveScreen.style.transform = 'translateX(0)';
+                    newActiveScreen.style.opacity = '1';
+
+                    // Specific rendering for each screen
+                    if (newScreenId === 'quiz-screen') {
+                        renderQuizScreen();
+                    } else if (newScreenId === 'result-screen') {
+                        renderResultScreen();
+                    }
+                }
+            }, 400); // Adjust delay to match transition duration
+            window.scrollTo(0, 0); // Reset scroll position
+        }
+
+        /**
+         * Updates the loading spinner and button state for quiz generation.
+         * @param {boolean} isLoading True to show loading, false to hide.
+         */
+        function setLoadingState(isLoading) {
+            appState.isLoading = isLoading;
+            if (isLoading) {
+                loadingSpinner.classList.remove('hidden');
+                startQuizBtn.setAttribute('disabled', 'true');
+                startQuizBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                startQuizBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Generating...';
+            } else {
+                loadingSpinner.classList.add('hidden');
+                startQuizBtn.removeAttribute('disabled');
+                startQuizBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                startQuizBtn.innerHTML = '<i class="fas fa-play mr-2"></i> Start Quiz';
+            }
+        }
+
+        /**
+         * Displays an error message for initial quiz generation.
+         * @param {string} message The error message to display.
+         */
+        function showErrorMessage(message) {
+            appState.errorMessage = message;
+            errorMessageDisplay.textContent = message;
+        }
+
+        /**
+         * Clears the displayed error message for initial quiz generation.
+         */
+        function clearErrorMessage() {
+            appState.errorMessage = null;
+            errorMessageDisplay.textContent = '';
+        }
+
+        /**
+         * Formats milliseconds into MM:SS string.
+         * @param {number} ms Milliseconds.
+         * @returns {string} Formatted time string.
+         */
+        function formatTime(ms) {
+            const totalSeconds = Math.floor(ms / 1000);
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+            return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        }
+
+        // --- Input Screen Logic ---
+
+        /**
+         * Initializes the input screen by setting up event listeners.
+         */
+        function initInputScreen() {
+            startQuizBtn.addEventListener('click', startQuizGeneration);
+            // Apply fade-in animation to input elements when input screen is rendered
+            document.querySelectorAll('#input-screen > *').forEach((element, index) => {
+                element.classList.add('fade-in', `fade-in-${index + 1}`);
+            });
+        }
+
+        /**
+         * Initiates the quiz generation process by calling the AI API.
+         */
+        async function startQuizGeneration() {
+            const topic = quizTopicInput.value.trim();
+            const numQuestions = parseInt(numQuestionsInput.value, 10);
+            const difficulty = difficultyLevelSelect.value;
+
+            if (!topic || numQuestions <= 0 || isNaN(numQuestions)) {
+                showErrorMessage("Please enter a valid topic and number of questions.");
+                return;
+            }
+
+            clearErrorMessage();
+            setLoadingState(true);
+
+            appState.quizTopic = topic;
+            appState.numberOfQuestions = numQuestions;
+            appState.difficultyLevel = difficulty;
+
+            try {
+                const prompt = `Generate a quiz with ${appState.numberOfQuestions} ${appState.difficultyLevel} level questions on the topic of ${appState.quizTopic}. Each question should have 4 options, and provide the 0-indexed correct answer. The response must be in JSON format like this: { "quizQuestions": [ { "question": "Question text?", "options": ["Option 1", "Option 2", "Option 3", "Option 4"], "correctAnswerIndex": 0 } ] }`;
+
+                // API Key for Gemini API (empty string means Canvas provides it at runtime)
+                const apiKey = "AIzaSyAILkaF-UWfXacG0-l05TdXgScCHKbi00g";
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+                const chatHistory = [{ role: "user", parts: [{ text: prompt }] }];
+                const generationConfig = {
+                    responseMimeType: "application/json",
+                    responseSchema: {
+                        type: "OBJECT",
+                        properties: {
+                            quizQuestions: {
+                                type: "ARRAY",
+                                items: {
+                                    type: "OBJECT",
+                                    properties: {
+                                        question: { type: "STRING" },
+                                        options: { type: "ARRAY", items: { type: "STRING" } },
+                                        correctAnswerIndex: { type: "NUMBER" }
+                                    },
+                                    required: ["question", "options", "correctAnswerIndex"]
+                                }
+                            }
+                        }
+                    }
+                };
+
+                const payload = {
+                    contents: chatHistory,
+                    generationConfig: generationConfig
+                };
+
+                console.log("Sending payload:", payload);
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(`API Error: ${response.status} - ${errorData.error.message || response.statusText}`);
+                }
+
+                const result = await response.json();
+                console.log("API response:", result);
+
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+
+                    const textPart = result.candidates[0].content.parts[0].text;
+                    const parsedData = JSON.parse(textPart);
+
+                    if (parsedData.quizQuestions && Array.isArray(parsedData.quizQuestions)) {
+                        appState.quizQuestions = parsedData.quizQuestions.map(q => ({
+                            question: q.question,
+                            options: q.options,
+                            correctAnswerIndex: q.correctAnswerIndex
+                        }));
+
+                        if (appState.quizQuestions.length === 0) {
+                             throw new Error("AI did not generate any quiz questions. Please try a different topic or input.");
+                        }
+
+                        // Reset quiz state for a new game
+                        appState.currentQuestionIndex = 0;
+                        appState.selectedOptionIndex = null;
+                        appState.answeredQuestions = [];
+                        // Initialize answeredQuestions with placeholder for explanations
+                        appState.quizQuestions.forEach((q, idx) => {
+                            appState.answeredQuestions.push({
+                                questionIndex: idx,
+                                selectedOptionIndex: null, // Will be updated during quiz
+                                isCorrect: false, // Will be updated during quiz
+                                userAnswer: 'N/A', // Will be updated during quiz
+                                correctAnswer: q.options[q.correctAnswerIndex],
+                                explanation: null,
+                                explanationLoading: false
+                            });
+                        });
+
+
+                        switchScreen('quiz-screen'); // Use the new screen switching function
+                        startTimer();
+                    } else {
+                        throw new Error("Failed to parse quiz questions from AI response. Unexpected format.");
+                    }
+                } else {
+                    throw new Error("Failed to get valid content from AI response.");
+                }
+            } catch (e) {
+                console.error("Error generating quiz:", e);
+                showErrorMessage(`Error generating quiz: ${e.message}. Please try again.`);
+            } finally {
+                setLoadingState(false);
+            }
+        }
+
+        // --- Quiz Screen Logic ---
+
+        /**
+         * Renders the current quiz question and options.
+         */
+        function renderQuizScreen() {
+            const currentQuestion = appState.quizQuestions[appState.currentQuestionIndex];
+            if (!currentQuestion) {
+                showErrorMessage("No quiz questions found or invalid question index.");
+                switchScreen('input-screen');
+                return;
+            }
+
+            questionTextDisplay.textContent = currentQuestion.question;
+            questionCounterDisplay.textContent = `Question ${appState.currentQuestionIndex + 1}/${appState.quizQuestions.length}`;
+
+            // Update progress bar
+            const progress = ((appState.currentQuestionIndex + 1) / appState.quizQuestions.length) * 100;
+            quizProgressBarFill.style.width = `${progress}%`;
+
+            optionsContainer.innerHTML = ''; // Clear previous options
+            currentQuestion.options.forEach((option, index) => {
+                const optionDiv = document.createElement('div');
+                // Updated class for dark theme options and consistent border style
+                optionDiv.className = 'option-card p-4 rounded-lg border-2 text-left';
+                optionDiv.textContent = option;
+                optionDiv.dataset.index = index; // Store index for selection
+
+                optionDiv.addEventListener('click', () => {
+                    appState.selectedOptionIndex = index;
+                    highlightSelectedOption();
+                    nextBtn.removeAttribute('disabled'); // Enable next button when an option is selected
+                    // Update Next button text based on whether it's the last question
+                    if (appState.currentQuestionIndex === appState.quizQuestions.length - 1) {
+                         nextBtn.innerHTML = '<i class="fas fa-check-circle mr-2"></i> <span>Finish Quiz</span>';
+                    } else {
+                         nextBtn.innerHTML = '<i class="fas fa-arrow-right mr-2"></i> <span>Next</span>';
+                    }
+                });
+                optionsContainer.appendChild(optionDiv);
+            });
+
+            // Pre-select option if already answered when navigating back/forth
+            const previouslyAnswered = appState.answeredQuestions[appState.currentQuestionIndex];
+            if (previouslyAnswered && previouslyAnswered.selectedOptionIndex !== null && previouslyAnswered.selectedOptionIndex !== -1) {
+                appState.selectedOptionIndex = previouslyAnswered.selectedOptionIndex;
+                highlightSelectedOption();
+                nextBtn.removeAttribute('disabled');
+                 // Set correct text for Next/Finish button
+                 if (appState.currentQuestionIndex === appState.quizQuestions.length - 1) {
+                     nextBtn.innerHTML = '<i class="fas fa-check-circle mr-2"></i> <span>Finish Quiz</span>';
+                } else {
+                     nextBtn.innerHTML = '<i class="fas fa-arrow-right mr-2"></i> <span>Next</span>';
+                }
+
+            } else {
+                appState.selectedOptionIndex = null;
+                nextBtn.setAttribute('disabled', 'true');
+                nextBtn.innerHTML = '<i class="fas fa-arrow-right mr-2"></i> <span>Next</span>'; // Default text
+            }
+
+            // Enable/disable previous button
+            if (appState.currentQuestionIndex > 0) {
+                previousBtn.removeAttribute('disabled');
+            } else {
+                previousBtn.setAttribute('disabled', 'true');
+            }
+        }
+
+        /**
+         * Highlights the currently selected option.
+         */
+        function highlightSelectedOption() {
+            document.querySelectorAll('.option-card').forEach((card, index) => {
+                if (index === appState.selectedOptionIndex) {
+                    card.classList.add('selected');
+                } else {
+                    card.classList.remove('selected');
+                }
+            });
+        }
+
+        /**
+         * Handles the user submitting an answer.
+         * Records the answer and its correctness.
+         */
+        function submitAnswer() {
+            const currentQuestion = appState.quizQuestions[appState.currentQuestionIndex];
+            const isCorrect = appState.selectedOptionIndex === currentQuestion.correctAnswerIndex;
+
+            // Update the existing entry for this question in answeredQuestions
+            appState.answeredQuestions[appState.currentQuestionIndex].selectedOptionIndex = appState.selectedOptionIndex;
+            appState.answeredQuestions[appState.currentQuestionIndex].isCorrect = isCorrect;
+            appState.answeredQuestions[appState.currentQuestionIndex].userAnswer = (appState.selectedOptionIndex !== null && appState.selectedOptionIndex !== -1) ? currentQuestion.options[appState.selectedOptionIndex] : 'N/A';
+        }
+
+        /**
+         * Proceeds to the next question or finishes the quiz.
+         */
+        function nextQuestion() {
+            // Only submit if a new selection was made or it's the last question and we're moving on
+            // This prevents overwriting a previous answer if simply navigating back and forth
+            const currentAnswerRecord = appState.answeredQuestions[appState.currentQuestionIndex];
+            if (appState.selectedOptionIndex !== null && currentAnswerRecord.selectedOptionIndex !== appState.selectedOptionIndex) {
+                 submitAnswer();
+            } else if (appState.selectedOptionIndex === null) {
+                 // If next is pressed without selection, mark as unanswered/skipped
+                 appState.answeredQuestions[appState.currentQuestionIndex].selectedOptionIndex = -1;
+                 appState.answeredQuestions[appState.currentQuestionIndex].isCorrect = false;
+                 appState.answeredQuestions[appState.currentQuestionIndex].userAnswer = 'N/A (Skipped)';
+            }
+
+
+            if (appState.currentQuestionIndex < appState.quizQuestions.length - 1) {
+                appState.currentQuestionIndex++;
+                renderQuizScreen();
+            } else {
+                // Quiz finished
+                stopTimer();
+                switchScreen('result-screen'); // Use the new screen switching function
+            }
+        }
+
+        /**
+         * Navigates to the previous question.
+         */
+        function previousQuestion() {
+            if (appState.currentQuestionIndex > 0) {
+                // Before going back, ensure current state is saved if an option was selected
+                // (this handles cases where user selects an option then immediately goes back)
+                if (appState.selectedOptionIndex !== null) {
+                    submitAnswer();
+                }
+
+                appState.currentQuestionIndex--;
+                renderQuizScreen();
+            }
+        }
+
+
+        /**
+         * Skips the current question. Records it as incorrect/unanswered.
+         */
+        function skipQuestion() {
+            appState.answeredQuestions[appState.currentQuestionIndex].selectedOptionIndex = -1; // -1 indicates skipped
+            appState.answeredQuestions[appState.currentQuestionIndex].isCorrect = false;
+            appState.answeredQuestions[appState.currentQuestionIndex].userAnswer = 'N/A (Skipped)';
+
+            if (appState.currentQuestionIndex < appState.quizQuestions.length - 1) {
+                appState.currentQuestionIndex++;
+                renderQuizScreen();
+            } else {
+                // Quiz finished
+                stopTimer();
+                switchScreen('result-screen'); // Use the new screen switching function
+            }
+        }
+
+        /**
+         * Starts the quiz timer.
+         */
+        function startTimer() {
+            appState.quizStartTime = Date.now();
+            // Give 60 seconds per question + 10 seconds buffer, min 30 seconds
+            appState.timeRemaining = Math.max(30, appState.numberOfQuestions * 60 + 10); // in seconds
+
+            timerDisplay.innerHTML = `<i class="fas fa-clock mr-2"></i>${formatTime(appState.timeRemaining * 1000)}`;
+
+            appState.quizInterval = setInterval(() => {
+                appState.timeRemaining--;
+                timerDisplay.innerHTML = `<i class="fas fa-clock mr-2"></i>${formatTime(appState.timeRemaining * 1000)}`;
+
+                if (appState.timeRemaining <= 10 && appState.timeRemaining > 0) {
+                    timerDisplay.classList.add('text-red-400'); /* Changed to red-400 for dark theme */
+                } else {
+                    timerDisplay.classList.remove('text-red-400');
+                }
+
+                if (appState.timeRemaining <= 0) {
+                    stopTimer();
+                    // Automatically end quiz if time runs out
+                    while (appState.currentQuestionIndex < appState.quizQuestions.length) {
+                        // Mark remaining questions as unanswered due to time out
+                        appState.answeredQuestions[appState.currentQuestionIndex].selectedOptionIndex = -1;
+                        appState.answeredQuestions[appState.currentQuestionIndex].isCorrect = false;
+                        appState.answeredQuestions[appState.currentQuestionIndex].userAnswer = 'N/A (Time Out)';
+                        appState.currentQuestionIndex++;
+                    }
+                    switchScreen('result-screen'); // Use the new screen switching function
+                }
+            }, 1000);
+        }
+
+        /**
+         * Stops the quiz timer.
+         */
+        function stopTimer() {
+            if (appState.quizInterval) {
+                clearInterval(appState.quizInterval);
+                appState.quizInterval = null;
+            }
+        }
+
+        // --- Result Screen Logic ---
+
+        /**
+         * Renders the result screen with score, analysis, and chart.
+         */
+        function renderResultScreen() {
+            const totalQuestions = appState.quizQuestions.length;
+            let correctAnswers = 0;
+            let incorrectAnswers = 0;
+
+            appState.answeredQuestions.forEach(answer => {
+                if (answer.isCorrect) {
+                    correctAnswers++;
+                } else {
+                    incorrectAnswers++;
+                }
+            });
+
+            const accuracy = totalQuestions > 0 ? ((correctAnswers / totalQuestions) * 100).toFixed(0) : 0;
+            const timeTakenMillis = Date.now() - appState.quizStartTime;
+            const timeTakenSeconds = (timeTakenMillis / 1000).toFixed(0);
+
+            finalScoreDisplay.textContent = `${correctAnswers}/${totalQuestions}`;
+            accuracyPercentageDisplay.textContent = `${accuracy}%`;
+            timeTakenDisplay.textContent = `${timeTakenSeconds} seconds`;
+
+            drawPieChart(correctAnswers, incorrectAnswers);
+            displayAnswerBreakdown();
+
+            // Reset summary state
+            appState.quizSummary = null;
+            appState.quizSummaryLoading = false;
+            appState.quizSummaryError = null;
+            quizSummaryDisplay.classList.add('hidden');
+            quizSummaryDisplay.classList.remove('open'); // Ensure it's closed
+            summaryLoadingSpinner.classList.add('hidden');
+            summaryErrorMessageDisplay.classList.add('hidden');
+            getSummaryBtn.removeAttribute('disabled');
+            getSummaryBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            getSummaryBtn.innerHTML = '<i class="fas fa-clipboard-list mr-1"></i> <span>Get Quiz Summary ✨</span>';
+        }
+
+        /**
+         * Draws a simple pie chart on the canvas.
+         * @param {number} correct Correct answers count.
+         * @param {number} incorrect Incorrect answers count.
+         */
+        function drawPieChart(correct, incorrect) {
+            const ctx = resultPieChartCanvas.getContext('2d');
+            ctx.clearRect(0, 0, resultPieChartCanvas.width, resultPieChartCanvas.height); // Clear canvas
+
+            const total = correct + incorrect;
+            if (total === 0) {
+                // If no questions, draw an empty circle or message
+                ctx.beginPath();
+                ctx.arc(resultPieChartCanvas.width / 2, resultPieChartCanvas.height / 2, 80, 0, 2 * Math.PI);
+                ctx.strokeStyle = '#6a748a'; /* Dark theme neutral color */
+                ctx.lineWidth = 10;
+                ctx.stroke();
+                return;
+            }
+
+            const centerX = resultPieChartCanvas.width / 2;
+            const centerY = resultPieChartCanvas.height / 2;
+            const radius = Math.min(centerX, centerY) - 10; // Slightly smaller to avoid cutting off
+
+            let currentAngle = 0;
+
+            // Draw Incorrect slice
+            const incorrectAngle = (incorrect / total) * 2 * Math.PI;
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, currentAngle, currentAngle + incorrectAngle);
+            ctx.lineTo(centerX, centerY);
+            ctx.fillStyle = '#EF4444'; // Red-500
+            ctx.fill();
+            currentAngle += incorrectAngle;
+
+            // Draw Correct slice
+            const correctAngle = (correct / total) * 2 * Math.PI;
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, currentAngle, currentAngle + correctAngle);
+            ctx.lineTo(centerX, centerY);
+            ctx.fillStyle = '#10B981'; // Green-500
+            ctx.fill();
+        }
+
+        /**
+         * Displays a detailed breakdown of each answered question.
+         */
+        function displayAnswerBreakdown() {
+            answerBreakdownDisplay.innerHTML = ''; // Clear previous breakdown
+
+            appState.answeredQuestions.forEach((answer, index) => {
+                const question = appState.quizQuestions[answer.questionIndex];
+                if (!question) return; // Should not happen
+
+                const itemDiv = document.createElement('div');
+                // Consistent dark theme border for breakdown items
+                itemDiv.className = 'mb-3 p-3 rounded-lg border border-gray-600';
+
+                const questionP = document.createElement('p');
+                questionP.className = 'font-semibold text-gray-100 mb-1'; /* Lighter text for question */
+                questionP.textContent = `Q${index + 1}: ${question.question}`;
+                itemDiv.appendChild(questionP);
+
+                const userAnswerP = document.createElement('p');
+                userAnswerP.className = 'text-sm text-gray-300'; /* Lighter text for user answer */
+                userAnswerP.innerHTML = `Your Answer: <span class="${answer.isCorrect ? 'correct-answer-text' : 'incorrect-answer-text'}">${answer.userAnswer}</span>`;
+                itemDiv.appendChild(userAnswerP);
+
+                if (!answer.isCorrect) {
+                    const correctAnswerP = document.createElement('p');
+                    // Adjusted green for dark theme correct answer text
+                    correctAnswerP.className = 'text-sm text-green-400';
+                    correctAnswerP.innerHTML = `Correct Answer: <strong>${question.options[question.correctAnswerIndex]}</strong>`; // Use original question's correct answer
+                    itemDiv.appendChild(correctAnswerP);
+                }
+
+                // Add Explanation button
+                const explainButton = document.createElement('button');
+                // Darker purple for button in dark theme
+                explainButton.className = 'mt-2 px-4 py-2 bg-purple-600 text-white text-sm rounded-lg hover:bg-purple-700 transition duration-200 flex items-center justify-center space-x-1';
+                explainButton.innerHTML = '<i class="fas fa-magic mr-1"></i> <span>Get Explanation ✨</span>';
+                explainButton.dataset.questionIndex = answer.questionIndex; // Store question index
+
+                const explanationDiv = document.createElement('div');
+                // Dark blue for explanation box in dark theme
+                explanationDiv.className = 'mt-3 p-3 bg-blue-800 border border-blue-600 rounded-lg text-blue-200 text-sm hidden explanation-section';
+                explanationDiv.id = `explanation-${answer.questionIndex}`;
+
+                const explanationLoadingSpinner = document.createElement('div');
+                explanationLoadingSpinner.className = 'text-center mt-3 hidden';
+                // Blue spinner for dark theme
+                explanationLoadingSpinner.innerHTML = '<i class="fas fa-spinner fa-spin text-blue-400"></i> Loading explanation...';
+                explanationLoadingSpinner.id = `explanation-loading-${answer.questionIndex}`;
+
+
+                explainButton.addEventListener('click', async (event) => {
+                    const qIndex = parseInt(event.currentTarget.dataset.questionIndex, 10);
+                    const currentAnswerData = appState.answeredQuestions[qIndex];
+                    const originalQuestion = appState.quizQuestions[qIndex];
+
+                    if (currentAnswerData.explanation) {
+                        // Toggle visibility if already loaded
+                        explanationDiv.classList.toggle('hidden');
+                        explanationDiv.classList.toggle('open'); // Toggle 'open' class for animation
+                        return;
+                    }
+
+                    // Show loading, disable button
+                    explanationLoadingSpinner.classList.remove('hidden');
+                    explainButton.setAttribute('disabled', 'true');
+                    explainButton.classList.add('opacity-50', 'cursor-not-allowed');
+
+                    try {
+                        const explanationText = await getExplanationForQuestion(
+                            originalQuestion.question,
+                            originalQuestion.options[originalQuestion.correctAnswerIndex],
+                            currentAnswerData.userAnswer
+                        );
+                        currentAnswerData.explanation = explanationText; // Store explanation
+                        explanationDiv.textContent = explanationText;
+                        explanationDiv.classList.remove('hidden'); // Show explanation
+                        explanationDiv.classList.add('open'); // Add 'open' class for animation
+                    } catch (err) {
+                        explanationDiv.textContent = `Error fetching explanation: ${err.message}`;
+                        explanationDiv.classList.remove('hidden');
+                        explanationDiv.classList.add('text-red-400'); /* Red for error message */
+                    } finally {
+                        explanationLoadingSpinner.classList.add('hidden');
+                        explainButton.removeAttribute('disabled');
+                        explainButton.classList.remove('opacity-50', 'cursor-not-allowed');
+                    }
+                });
+
+                itemDiv.appendChild(explainButton);
+                itemDiv.appendChild(explanationLoadingSpinner);
+                itemDiv.appendChild(explanationDiv);
+
+                answerBreakdownDisplay.appendChild(itemDiv);
+            });
+        }
+
+        /**
+         * Calls the Gemini API to get an explanation for a given question.
+         * @param {string} questionText The question text.
+         * @param {string} correctAnswer The correct answer.
+         * @param {string} userAnswer The user's answer.
+         * @returns {Promise<string>} The explanation text.
+         */
+        async function getExplanationForQuestion(questionText, correctAnswer, userAnswer) {
+            const prompt = `Please provide a concise explanation for the following quiz question and its correct answer. Also, briefly explain why the user's answer (if different) was incorrect.
+            Question: "${questionText}"
+            Correct Answer: "${correctAnswer}"
+            User's Answer: "${userAnswer}"
+            Provide the explanation in a few sentences.`;
+
+            const apiKey = "AIzaSyAILkaF-UWfXacG0-l05TdXgScCHKbi00g";
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+            const chatHistory = [{ role: "user", parts: [{ text: prompt }] }];
+            const payload = { contents: chatHistory };
+
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(`API Error: ${response.status} - ${errorData.error.message || response.statusText}`);
+            }
+
+            const result = await response.json();
+            if (result.candidates && result.candidates.length > 0 &&
+                result.candidates[0].content && result.candidates[0].content.parts &&
+                result.candidates[0].content.parts.length > 0) {
+                return result.candidates[0].content.parts[0].text;
+            } else {
+                throw new Error("No explanation content found in AI response.");
+            }
+        }
+
+        /**
+         * Calls the Gemini API to get a summary of the quiz.
+         */
+        async function getQuizSummary() {
+            if (appState.quizSummary) {
+                // Toggle visibility if already loaded
+                quizSummaryDisplay.classList.toggle('hidden');
+                quizSummaryDisplay.classList.toggle('open'); // Toggle 'open' class for animation
+                return;
+            }
+
+            appState.quizSummaryLoading = true;
+            summaryLoadingSpinner.classList.remove('hidden');
+            getSummaryBtn.setAttribute('disabled', 'true');
+            getSummaryBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            summaryErrorMessageDisplay.classList.add('hidden'); // Hide previous error
+
+            let questionsAndAnswers = appState.quizQuestions.map((q, index) => {
+                const userAnswerData = appState.answeredQuestions.find(a => a.questionIndex === index);
+                const userAnswer = userAnswerData ? userAnswerData.userAnswer : 'N/A';
+                const correctAnswer = q.options[q.correctAnswerIndex];
+                return `Question: ${q.question}\nCorrect Answer: ${correctAnswer}\nUser's Answer: ${userAnswer}\n`;
+            }).join('\n---\n');
+
+            const prompt = `Based on the following quiz details about "${appState.quizTopic}" and the questions asked, provide a concise summary or key takeaways from this quiz. Focus on the main points covered.
+            \nQuiz Questions and Answers:\n${questionsAndAnswers}`;
+
+            const apiKey = "AIzaSyAILkaF-UWfXacG0-l05TdXgScCHKbi00g";
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+            const chatHistory = [{ role: "user", parts: [{ text: prompt }] }];
+            const payload = { contents: chatHistory };
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(`API Error: ${response.status} - ${errorData.error.message || response.statusText}`);
+                }
+
+                const result = await response.json();
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    appState.quizSummary = result.candidates[0].content.parts[0].text;
+                    quizSummaryDisplay.textContent = appState.quizSummary;
+                    quizSummaryDisplay.classList.remove('hidden');
+                    quizSummaryDisplay.classList.add('open'); // Add 'open' class for animation
+                } else {
+                    throw new Error("No summary content found in AI response.");
+                }
+            } catch (err) {
+                appState.quizSummaryError = `Error generating summary: ${err.message}`;
+                summaryErrorMessageDisplay.textContent = appState.quizSummaryError;
+                summaryErrorMessageDisplay.classList.remove('hidden');
+                console.error("Error generating quiz summary:", err);
+            } finally {
+                appState.quizSummaryLoading = false;
+                summaryLoadingSpinner.classList.add('hidden');
+                getSummaryBtn.removeAttribute('disabled');
+                getSummaryBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+        }
+
+
+        /**
+         * Resets the app state and returns to the input screen.
+         */
+        function restartQuiz() {
+            stopTimer();
+            appState = {
+                currentScreen: 'input',
+                quizTopic: '',
+                numberOfQuestions: 5,
+                difficultyLevel: 'Medium',
+                quizQuestions: [],
+                currentQuestionIndex: 0,
+                selectedOptionIndex: null,
+                answeredQuestions: [],
+                timeRemaining: 0,
+                quizInterval: null,
+                quizStartTime: 0,
+                isLoading: false,
+                errorMessage: null,
+                quizSummary: null, // Reset summary
+                quizSummaryLoading: false,
+                quizSummaryError: null
+            };
+            // Reset input fields
+            quizTopicInput.value = '';
+            numQuestionsInput.value = '5';
+            difficultyLevelSelect.value = 'Medium';
+            clearErrorMessage();
+            switchScreen('input-screen'); // Use the new screen switching function
+        }
+
+        // --- Event Listeners for Navigation Buttons ---
+        nextBtn.addEventListener('click', nextQuestion);
+        skipBtn.addEventListener('click', skipQuestion);
+        previousBtn.addEventListener('click', previousQuestion); // New event listener for Previous
+        restartQuizBtn.addEventListener('click', restartQuiz);
+        getSummaryBtn.addEventListener('click', getQuizSummary);
+
+        // --- Initial App Load ---
+        document.addEventListener('DOMContentLoaded', () => {
+            initInputScreen();
+            switchScreen('input-screen'); // Initially show the input screen using the transition function
+        });
+    </script>
+</body>
+</html>
